@@ -30,6 +30,19 @@ public class TAC {
 	@Column(name = "year")
 	private String year;
 	
+	public TAC() {
+		
+	}
+	
+	public TAC(String[] args) {
+		this.setTAC(args[0]);
+		this.setManufacturer(args[1]);
+		this.setModel(args[2]);
+		this.setHWType(args[3]);
+		this.setOS(args[4]);
+		this.setYear(args[5]);
+	}
+	
 	public String getTAC() {
 		return TAC;
 	}
