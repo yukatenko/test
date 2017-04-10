@@ -1,6 +1,7 @@
 package tac;
 
 import java.security.spec.AlgorithmParameterSpec;
+import java.util.Arrays;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -13,87 +14,114 @@ import javax.persistence.Table;
 
 //TAC,Manufacturer,Model,HW-Type,OS,Year
 
+/**
+ * @author Prptsh
+ *
+ */
+/**
+ * @author Prptsh
+ *
+ */
 @Entity
 @Table(name = "TAC")
 public class TAC {
 	
 	@Id
 	@Column(name = "tac")
-	private String TAC;
+	private byte[] TAC;
 	
 	@Column(name = "manufacturer")
-	private String manufacturer;
+	private byte[] manufacturer;
 	
 	@Column(name = "model")
-	private String model;
+	private byte[] model;
 	
 	@Column(name = "hw_type")
-	private String HWType;
+	private byte[] HWType;
 	
 	@Column(name = "os")
-	private String OS;
+	private byte[] OS;
 	
 	@Column(name = "year")
-	private String year;
+	private byte[] year;
 	
+	/**
+	 * 
+	 */
 	public TAC() {
 		
 	}
 	
 	public TAC(String[] args) {
-		this.setTAC(args[0]);
-		this.setManufacturer(args[1]);
-		this.setModel(args[2]);
-		this.setHWType(args[3]);
-		this.setOS(args[4]);
-		this.setYear(args[5]);
+		setTAC(args[0].getBytes());
+		setManufacturer(args[1].getBytes());
+		setModel(args[2].getBytes());
+		setHWType(args[3].getBytes());
+		setOS(args[4].getBytes());
+		setYear(args[5].getBytes());
 	}
-	
-	public String getTAC() {
+
+	public byte[] getTAC() {
 		return TAC;
 	}
-	public void setTAC(String tAC) {
+
+	public void setTAC(byte[] tAC) {
 		TAC = tAC;
 	}
-	public String getModel() {
-		return model;
-	}
-	public String getManufacturer() {
+
+	public byte[] getManufacturer() {
 		return manufacturer;
 	}
-	public void setManufacturer(String manufacturer) {
+
+	public void setManufacturer(byte[] manufacturer) {
 		this.manufacturer = manufacturer;
 	}
-	public void setModel(String model) {
+
+	public byte[] getModel() {
+		return model;
+	}
+
+	public void setModel(byte[] model) {
 		this.model = model;
 	}
-	public String getHWType() {
+
+	public byte[] getHWType() {
 		return HWType;
 	}
-	public void setHWType(String hWType) {
+
+	public void setHWType(byte[] hWType) {
 		HWType = hWType;
 	}
-	public String getOS() {
+
+	public byte[] getOS() {
 		return OS;
 	}
-	public void setOS(String oS) {
+
+	public void setOS(byte[] oS) {
 		OS = oS;
 	}
-	public String getYear() {
+
+	public byte[] getYear() {
 		return year;
 	}
-	public void setYear(String year) {
+
+	public void setYear(byte[] year) {
 		this.year = year;
 	}
+	
 	public String toString() {
-		return TAC + " - " + manufacturer + " - " + model + " - " + HWType + " - " + OS + " - " + year;
+		return new String(TAC) + " - " + new String(manufacturer) + " - " + new String(model) + " - " + new String(HWType) + " - "
+				+ new String(OS) + " - " + new String(year);		
 	}
+	
+	
+	
 	
 	public void encrypt(String key) {
 		Cipher encryptCipher = null;		
 		byte [] plain = null;
 		byte [] result = null;
-		byte[] IV = (TAC + TAC).getBytes();
+		byte[] IV = Arrays.copyOf(TAC, 16);
 		int len;
 		
 		try {
@@ -109,39 +137,39 @@ public class TAC {
 			// 
 			
 			// manufacturer
-			plain = manufacturer.getBytes();
+			plain = manufacturer;
 			result = new byte[encryptCipher.getOutputSize(plain.length)];
 			len = encryptCipher.update(plain, 0, plain.length, result, 0);
 			encryptCipher.doFinal(result, len);
-			setManufacturer(new String(result));
+			setManufacturer(result);
 			
 			// model
-			plain = model.getBytes();
+			plain = model;
 			result = new byte[encryptCipher.getOutputSize(plain.length)];
 			len = encryptCipher.update(plain, 0, plain.length, result, 0);
 			encryptCipher.doFinal(result, len);
-			setModel(new String(result));
+			setModel(result);
 			
 			// HWType
-			plain = HWType.getBytes();
+			plain = HWType;
 			result = new byte[encryptCipher.getOutputSize(plain.length)];
 			len = encryptCipher.update(plain, 0, plain.length, result, 0);
 			encryptCipher.doFinal(result, len);
-			setHWType(new String(result));
+			setHWType(result);
 			
 			// OS
-			plain = OS.getBytes();
+			plain = OS;
 			result = new byte[encryptCipher.getOutputSize(plain.length)];
 			len = encryptCipher.update(plain, 0, plain.length, result, 0);
 			encryptCipher.doFinal(result, len);
-			setOS(new String(result));
+			setOS(result);
 			
 			// year
-			plain = year.getBytes();
+			plain = year;
 			result = new byte[encryptCipher.getOutputSize(plain.length)];
 			len = encryptCipher.update(plain, 0, plain.length, result, 0);
 			encryptCipher.doFinal(result, len);
-			setYear(new String(result));	
+			setYear(result);	
 			
 		} catch (Exception e) {
 			System.out.println("Exception message: " + e.getMessage());
@@ -152,7 +180,7 @@ public class TAC {
 		Cipher decryptCipher = null;		
 		byte [] ciphertext = null;
 		byte [] plain = null;		
-		byte[] IV = (TAC + TAC).getBytes();
+		byte[] IV = Arrays.copyOf(TAC, 16);
 		int len;
 		
 		try {
@@ -168,39 +196,44 @@ public class TAC {
 			// 
 			
 			// manufacturer
-			ciphertext = manufacturer.getBytes();
+			ciphertext = manufacturer;
 			plain = new byte[decryptCipher.getOutputSize(ciphertext.length)];
 			len = decryptCipher.update(ciphertext, 0, ciphertext.length, plain, 0);
-			decryptCipher.doFinal(plain, len);
-			setManufacturer(new String(plain));
+			len += decryptCipher.doFinal(plain, len);
+			plain = Arrays.copyOf(plain, len);
+			setManufacturer(plain);
 			
 			// model
-			ciphertext = model.getBytes();
+			ciphertext = model;
 			plain = new byte[decryptCipher.getOutputSize(ciphertext.length)];
 			len = decryptCipher.update(ciphertext, 0, ciphertext.length, plain, 0);
-			decryptCipher.doFinal(plain, len);
-			setModel(new String(plain));
+			len += decryptCipher.doFinal(plain, len);
+			plain = Arrays.copyOf(plain, len);
+			setModel(plain);
 			
 			// HWType
-			ciphertext = HWType.getBytes();
+			ciphertext = HWType;
 			plain = new byte[decryptCipher.getOutputSize(ciphertext.length)];
 			len = decryptCipher.update(ciphertext, 0, ciphertext.length, plain, 0);
-			decryptCipher.doFinal(plain, len);
-			setHWType(new String(plain));
+			len += decryptCipher.doFinal(plain, len);
+			plain = Arrays.copyOf(plain, len);
+			setHWType(plain);
 			
 			// OS
-			ciphertext = OS.getBytes();
+			ciphertext = OS;
 			plain = new byte[decryptCipher.getOutputSize(ciphertext.length)];
 			len = decryptCipher.update(ciphertext, 0, ciphertext.length, plain, 0);
-			decryptCipher.doFinal(plain, len);
-			setOS(new String(plain));
+			len += decryptCipher.doFinal(plain, len);
+			plain = Arrays.copyOf(plain, len);
+			setOS(plain);
 			
 			// year
-			ciphertext = year.getBytes();
+			ciphertext = year;
 			plain = new byte[decryptCipher.getOutputSize(ciphertext.length)];
 			len = decryptCipher.update(ciphertext, 0, ciphertext.length, plain, 0);
-			decryptCipher.doFinal(plain, len);
-			setYear(new String(plain));	
+			len += decryptCipher.doFinal(plain, len);
+			plain = Arrays.copyOf(plain, len);
+			setYear(plain);	
 			
 		} catch (Exception e) {
 			System.out.println("Exception message: " + e.getMessage());
