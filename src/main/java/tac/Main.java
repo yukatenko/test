@@ -16,193 +16,202 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import org.postgresql.util.PSQLException;
 
 public class Main {
 	private JTextField keyTextField, inputFileTextField, incorrectFileTextField, TACTextField;
 	private JButton addButton, selectButton;
-	private JLabel addLabel, selectLabel;
-	
+	private JTextArea resultTextArea;
+
 	public Main() {
+		Engine engine = new Engine();
 		JFrame frame = new JFrame("");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		JPanel panel = new JPanel();
-		panel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
-		panel.setLayout(new GridLayout(13, 1, 2, 2));
+		panel.setLayout(new GridLayout(1, 2, 2, 2));
+
+		JPanel lPanel = new JPanel();
+		lPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		lPanel.setLayout(new GridLayout(11, 1, 2, 2));
+
+		// РєР»СЋС‡
+		lPanel.add(new JLabel("Р¤Р°Р№Р» СЃ РєР»СЋС‡РѕРј С€РёС„СЂРѕРІР°РЅРёСЏ"));
+		lPanel.add(keyTextField = new JTextField());
+
+		// РґРѕР±Р°РІР»РµРЅРёРµ РґР°РЅРЅС‹С…
+		lPanel.add(new JLabel("Р”РѕР±Р°РІР»РµРЅРёРµ Р·Р°РїРёСЃРµР№ РІ Р±Р°Р·Сѓ РґР°РЅРЅС‹С…"));
+		lPanel.add(new JLabel("Р¤Р°Р№Р» СЃ РґР°РЅРЅС‹РјРё"));
+		lPanel.add(inputFileTextField = new JTextField());
+		lPanel.add(new JLabel("Р¤Р°Р№Р» РґР»СЏ Р·Р°РїРёСЃРё РЅРµРєРѕСЂСЂРµРєС‚РЅС‹С… СЃС‚СЂРѕРє"));
+		lPanel.add(incorrectFileTextField = new JTextField());
+		lPanel.add(addButton = new JButton("Р”РѕР±Р°РІРёС‚СЊ"));
 		
-		// ключ
-		panel.add(new JLabel("Файл с ключом шифрования"));
-		panel.add(keyTextField = new JTextField());
-		
-		// добавление данных
-		panel.add(new JLabel("Добавление записей в базу данных"));
-		panel.add(new JLabel("Файл с данными"));
-		panel.add(inputFileTextField = new JTextField());
-		panel.add(new JLabel("Файл для записи некорректных строк"));
-		panel.add(incorrectFileTextField = new JTextField());
-		panel.add(addButton = new JButton("Добавить"));
-		panel.add(addLabel = new JLabel());
-				
-		// выборка данных
-		panel.add(new JLabel("Поиск записи по TAC"));
-		panel.add(TACTextField = new JTextField());
-		panel.add(selectButton = new JButton("Поиск"));
-		panel.add(selectLabel = new JLabel());
-		
-		
-		// задаем фрейм, устанавливаем панель
+		// РІС‹Р±РѕСЂРєР° РґР°РЅРЅС‹С…
+		lPanel.add(new JLabel("РџРѕРёСЃРє Р·Р°РїРёСЃРё РїРѕ TAC"));
+		lPanel.add(TACTextField = new JTextField());
+		lPanel.add(selectButton = new JButton("РџРѕРёСЃРє"));
+
+		JPanel rPanel = new JPanel();
+		rPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		rPanel.setLayout(new GridLayout(1, 1, 2, 2));
+		rPanel.add(resultTextArea = new JTextArea());
+
+		panel.add(lPanel);
+		panel.add(rPanel);
+
+		// Р·Р°РґР°РµРј С„СЂРµР№Рј, СѓСЃС‚Р°РЅР°РІР»РёРІР°РµРј РїР°РЅРµР»СЊ
 		frame.setContentPane(panel);
-						
-		// задаем размеры и видимость
-		frame.setSize(400, 400);
+
+		// Р·Р°РґР°РµРј СЂР°Р·РјРµСЂС‹ Рё РІРёРґРёРјРѕСЃС‚СЊ
+		frame.setSize(600, 400);
 		frame.setVisible(true);
-		
-		Engine engine = new Engine();
+
 		addButton.addActionListener(engine);
 		selectButton.addActionListener(engine);
-		
+
 	}
-	
+
 	class Engine implements ActionListener {
 		private Session session;
+
 		Engine() {
 			Security.addProvider(new BouncyCastleProvider());
 			SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
 			session = sessionFactory.openSession();
 		}
-	
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			Object src = e.getSource();
 			if (src == addButton) {
-				addLabel.setText(addData(session, inputFileTextField.getText(), incorrectFileTextField.getText(), true, keyTextField.getText()));
+				resultTextArea.setText(addData(session, keyTextField.getText(), inputFileTextField.getText(),
+						incorrectFileTextField.getText(), true));
 			}
 			if (src == selectButton) {
-				selectLabel.setText(selectData(session, TACTextField.getText(), keyTextField.getText()));
+				resultTextArea.setText(selectData(session, TACTextField.getText(), keyTextField.getText()));
 			}
 		}
-		
-		// добавление данных из файла в БД
-		// header - пропуск первой строки
-		public String addData(Session session, String filename, String incorrectFilename, boolean header, String keyFile) {
+
+		// РґРѕР±Р°РІР»РµРЅРёРµ РґР°РЅРЅС‹С… РёР· С„Р°Р№Р»Р° РІ Р‘Р”
+		// header - РїСЂРѕРїСѓСЃРє РїРµСЂРІРѕР№ СЃС‚СЂРѕРєРё
+		public String addData(Session session, String keyFile, String filename, String incorrectFilename,
+				boolean header) {
 			String result = null;
 			try {
-				String key = key(keyFile);
-				if (key == null) {
-					throw new Exception();
+				String key;
+				try {
+					key = key(keyFile);
+				} catch (Exception e) {
+					throw e;
 				}
-				
-				session.beginTransaction();				
-				
-				String str;			
-							
-				// необходимо проверять корректность каждой строки
-				// открываем файл для чтения, считываем строку, делим ее на сегменты, помещаем их в массив
-				// длина массива должна быть равна 6
-				// корректные строки добавляем в таблицу
-				try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filename))) {
-					
-					// пропуск первой строки
+
+				// РЅРµРѕР±С…РѕРґРёРјРѕ РїСЂРѕРІРµСЂСЏС‚СЊ РєРѕСЂСЂРµРєС‚РЅРѕСЃС‚СЊ РєР°Р¶РґРѕР№ СЃС‚СЂРѕРєРё
+				// РѕС‚РєСЂС‹РІР°РµРј С„Р°Р№Р» РґР»СЏ С‡С‚РµРЅРёСЏ, СЃС‡РёС‚С‹РІР°РµРј СЃС‚СЂРѕРєСѓ, РґРµР»РёРј РµРµ РЅР°
+				// СЃРµРіРјРµРЅС‚С‹, РїРѕРјРµС‰Р°РµРј РёС… РІ РјР°СЃСЃРёРІ
+				// РґР»РёРЅР° РјР°СЃСЃРёРІР° РґРѕР»Р¶РЅР° Р±С‹С‚СЊ СЂР°РІРЅР° 6
+				// РєРѕСЂСЂРµРєС‚РЅС‹Рµ СЃС‚СЂРѕРєРё РґРѕР±Р°РІР»СЏРµРј РІ С‚Р°Р±Р»РёС†Сѓ
+				try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filename));
+						FileWriter fileWriter = new FileWriter(incorrectFilename, true)) {
+
+					String str;
+					// РїСЂРѕРїСѓСЃРє РїРµСЂРІРѕР№ СЃС‚СЂРѕРєРё
 					if (header) {
 						str = bufferedReader.readLine();
 					}
+					session.beginTransaction();
 					while ((str = bufferedReader.readLine()) != null) {
-										
+
 						if (isCorrect(str)) {
-							String[] parts = {"", "", "", "", "", ""};
+							String[] parts = { "", "", "", "", "", "" };
 							String[] temp = str.split(",");
 							System.arraycopy(temp, 0, parts, 0, temp.length);
-							
-							List<TAC> TACList = session.createCriteria(TAC.class).add(Restrictions.like("TAC", parts[0].getBytes())).list();
-							if (TACList.isEmpty()) {
+
+							try {								
 								TAC tac = new TAC(parts);
-								tac.encrypt(key);
-								session.save(tac);
-							}							
-							
+								Encryption.encrypt(tac, key);
+								session.save(tac);								
+							} catch (Exception e) {
+								System.out.println(e.getMessage());
+							}
 						} else {
-							System.out.println(isCorrect(str));
-							try (FileWriter fileWriter = new FileWriter(incorrectFilename, true)) {
-								fileWriter.write(str + "\n");
-							} catch(IOException e) {
-								result = "IOException";
-							} 	
+							fileWriter.write(str + "\n");
 						}
 					}
 					session.getTransaction().commit();
 					result = "Data saved";
-				} catch(IOException e) {
-					result = "IOException";
-				} 			
-				
-				
+				} catch (IOException e) {
+					session.getTransaction().rollback();
+					result = "IOException " + e.getMessage();
+				}
+
 			} catch (Exception e) {
-				result = "Something is wrong";
-				session.getTransaction().rollback();
-			} finally {
-				return result;
+				result = e.getMessage();
 			}
+			return result;
 		}
-		
-		// выбор из БД
-		@SuppressWarnings("finally")
+
+		// РІС‹Р±РѕСЂ РёР· Р‘Р”
 		public String selectData(Session session, String tacString, String keyFile) {
-			String str = null;
+			String result = null;
 			try {
 				String key = key(keyFile);
-				if (key == null) {
-					throw new Exception();
-				}
-				List<TAC> TACList = null;				
+				List<TAC> TACList = null;
 				try {
 					session.beginTransaction();
-					TACList = session.createCriteria(TAC.class).add(Restrictions.like("TAC", tacString.getBytes())).setMaxResults(1).list();		
+					TACList = session.createCriteria(TAC.class).add(Restrictions.like("TAC", tacString)).list();
 					session.getTransaction().commit();
 				} catch (Exception e) {
 					session.getTransaction().rollback();
 					e.printStackTrace();
-				} 
+				}
 				if (TACList.isEmpty()) {
-					str = "TAC not found";
+					result = "TAC not found";
 				} else {
-					TAC tac = TACList.get(0);				
-					tac.decrypt(key);
-					str = tac.toString();				
+					result = "";
+					for (TAC tac : TACList) {
+						Encryption.decrypt(tac, key);
+						result += tac.toString() + "\n";
+					}
+					session.clear();
 				}
 			} catch (Exception e) {
-				str = "Something is wrong";
-			} finally {
-				return str;
+				result = e.getMessage();
 			}
+			return result;
 		}
-		
-		//проверка корректности TAC
+
+		// РїСЂРѕРІРµСЂРєР° РєРѕСЂСЂРµРєС‚РЅРѕСЃС‚Рё TAC
 		public boolean isCorrect(String tac) {
 			Pattern pattern = Pattern.compile("[0-9]{8},[^,]*,[^,]*,[^,]*,[^,]*,[^,]*");
 			return pattern.matcher(tac).matches();
 		}
-		
-		// ключ
-		public String key(String keyFile) {
-			String key;
+
+		// РєР»СЋС‡
+		public String key(String keyFile) throws Exception {
+			String key = null;
 			try (BufferedReader bufferedReader = new BufferedReader(new FileReader(keyFile))) {
 				key = bufferedReader.readLine();
 				if (key.length() != 16) {
 					key = null;
+					throw new Exception("Incorrect key");
 				}
-			} catch(IOException e) {
-				System.out.println("IOException");
-				key = null;
+			} catch (IOException e) {
+				throw new Exception("Key file exception");
+			} catch (Exception e) {
+				throw e;
 			}
 			return key;
-		}		
+		}
 	}
-	
-	public static void main (String[] args) {
+
+	public static void main(String[] args) {
 		new Main();
 	}
 }

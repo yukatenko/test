@@ -128,8 +128,6 @@ public class Encryption {
 			plain = Arrays.copyOf(plain, len);
 			tac.setYear(plain);
 
-			
-
 		} catch (Exception e) {
 			System.out.println("Exception message: " + e.getMessage());
 		}
