@@ -52,7 +52,7 @@ public class Main {
 		lPanel.add(new JLabel("Файл для записи некорректных строк"));
 		lPanel.add(incorrectFileTextField = new JTextField());
 		lPanel.add(addButton = new JButton("Добавить"));
-		
+
 		// выборка данных
 		lPanel.add(new JLabel("Поиск записи по TAC"));
 		lPanel.add(TACTextField = new JTextField());
@@ -104,6 +104,7 @@ public class Main {
 		public String addData(Session session, String keyFile, String filename, String incorrectFilename,
 				boolean header) {
 			String result = null;
+			session.clear();
 			try {
 				String key;
 				try {
@@ -133,13 +134,13 @@ public class Main {
 							String[] temp = str.split(",");
 							System.arraycopy(temp, 0, parts, 0, temp.length);
 
-							try {								
+							if (session.get(TAC.class, parts[0]) == null) {
 								TAC tac = new TAC(parts);
 								Encryption.encrypt(tac, key);
-								session.save(tac);								
-							} catch (Exception e) {
-								System.out.println(e.getMessage());
+								session.save(tac);
 							}
+							
+
 						} else {
 							fileWriter.write(str + "\n");
 						}
@@ -152,7 +153,7 @@ public class Main {
 				}
 
 			} catch (Exception e) {
-				result = e.getMessage();
+				result = "out" + e.getMessage();
 			}
 			return result;
 		}
