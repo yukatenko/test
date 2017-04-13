@@ -16,6 +16,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -61,7 +62,8 @@ public class Main {
 		JPanel rPanel = new JPanel();
 		rPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		rPanel.setLayout(new GridLayout(1, 1, 2, 2));
-		rPanel.add(resultTextArea = new JTextArea());
+		JScrollPane scrollPane = new JScrollPane(resultTextArea = new JTextArea());
+		rPanel.add(scrollPane);
 
 		panel.add(lPanel);
 		panel.add(rPanel);
